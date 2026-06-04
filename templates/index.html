@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Simple Product Manager</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
+      form { margin-bottom: 1rem; }
+      .row { display:flex; gap:0.5rem; align-items:center; }
+      input[type=text], input[type=number] { padding:0.4rem; }
+      table { width:100%; border-collapse: collapse; margin-top:1rem; }
+      th, td { border:1px solid #ddd; padding:0.5rem; text-align:left; }
+      .msg { padding:0.5rem; margin-bottom:0.5rem; }
+      .msg.error { background:#ffe6e6; color:#900; }
+      .msg.success { background:#e6ffe6; color:#060; }
+      .meta { margin-top:1rem; font-size:0.95rem; color:#333; }
+    </style>
+  </head>
+  <body>
+    <h1>Simple Product Manager</h1>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="msg {{ category }}">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form action="/" method="get">
+      <div class="row">
+        <input type="text" name="q" placeholder="Search by name or category" value="{{ q }}">
+        <button type="submit">Search</button>
+        <a href="/">Clear</a>
+      </div>
+    </form>
+
+    <form action="{{ url_for('add') }}" method="post">
+      <div class="row">
+        <input type="text" name="name" placeholder="Product name">
+        <input type="text" name="category" placeholder="Category">
+        <input type="text" name="price" placeholder="Price">
+        <button type="submit">Add</button>
+      </div>
+    </form>
+
+    <div class="meta">
+      <strong>Total:</strong> {{ total }}
+      {% if avg_price is not none %} &nbsp; | &nbsp; <strong>Average price:</strong> {{ '%.2f'|format(avg_price) }}{% endif %}
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>ID</th><th>Name</th><th>Category</th><th>Price</th><th>Actions</th></tr>
+      </thead>
+      <tbody>
+        {% for p in products %}
+          <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td>{{ p.category }}</td>
+            <td>{{ '%.2f'|format(p.price) }}</td>
+            <td>
+              <form action="{{ url_for('delete', product_id=p.id) }}" method="post" style="display:inline">
+                <button type="submit" onclick="return confirm('Delete this product?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        {% else %}
+          <tr><td colspan="5">No products found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+  </body>
+</html>
