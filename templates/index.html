@@ -5,16 +5,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Simple Product Manager</title>
     <style>
-      body { font-family: Arial, sans-serif; max-width: 900px; margin: 2rem auto; padding: 0 1rem; }
-      form { margin-bottom: 1rem; }
-      .row { display:flex; gap:0.5rem; align-items:center; }
-      input[type=text], input[type=number] { padding:0.4rem; }
-      table { width:100%; border-collapse: collapse; margin-top:1rem; }
-      th, td { border:1px solid #ddd; padding:0.5rem; text-align:left; }
-      .msg { padding:0.5rem; margin-bottom:0.5rem; }
-      .msg.error { background:#ffe6e6; color:#900; }
-      .msg.success { background:#e6ffe6; color:#060; }
-      .meta { margin-top:1rem; font-size:0.95rem; color:#333; }
+      body { font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, sans-serif; max-width: 960px; margin: 2rem auto; padding: 0 1rem; background:#f6f8fb; color:#1f2937; }
+      h1 { margin-bottom: 1rem; color:#111827; }
+      form { margin-bottom: 1.2rem; }
+      .row { display:flex; flex-wrap: wrap; gap:0.75rem; align-items:center; }
+      input[type=text], input[type=number] { flex:1; min-width:150px; padding:0.65rem 0.8rem; border:1px solid #cbd5e1; border-radius:0.5rem; background:#fff; }
+      button:not(.action-button), a.button-link { padding:0.65rem 1rem; border:none; border-radius:0.55rem; background:#2563eb; color:#fff; text-decoration:none; cursor:pointer; font-weight:600; }
+      a.button-link { display:inline-flex; align-items:center; justify-content:center; }
+      button:not(.action-button):hover, a.button-link:hover { background:#1d4ed8; }
+      table { width:100%; border-collapse: collapse; margin-top:1rem; background:#fff; border-radius:0.75rem; overflow:hidden; box-shadow:0 1px 2px rgba(15,23,42,0.05); }
+      th, td { border-bottom:1px solid #e2e8f0; padding:0.9rem 0.8rem; text-align:left; }
+      th { background:#f8fafc; color:#0f172a; font-weight:700; }
+      tbody tr:hover { background:#f8fafc; }
+      .msg { padding:0.75rem 1rem; margin-bottom:0.75rem; border-radius:0.5rem; }
+      .msg.error { background:#fee2e2; color:#991b1b; }
+      .msg.success { background:#dcfce7; color:#166534; }
+      .meta { margin-top:1rem; font-size:0.95rem; color:#334155; }
+      .actions { display:flex; gap:0.75rem; flex-wrap:wrap; align-items:center; }
+      .actions form { margin:0; }
+      .action-link, .action-button {
+        background:none;
+        border:none;
+        padding:0;
+        color:#2563eb;
+        font-weight:600;
+        cursor:pointer;
+        text-decoration:underline;
+        font-size:0.95rem;
+      }
+      .action-link:hover, .action-button:hover { color:#1d4ed8; background:none; }
+      .edit-link { color:#2563eb; font-weight:600; }
+      .edit-link:hover { color:#1d4ed8; }
     </style>
   </head>
   <body>
@@ -36,14 +57,27 @@
       </div>
     </form>
 
-    <form action="{{ url_for('add') }}" method="post">
-      <div class="row">
-        <input type="text" name="name" placeholder="Product name">
-        <input type="text" name="category" placeholder="Category">
-        <input type="text" name="price" placeholder="Price">
-        <button type="submit">Add</button>
-      </div>
-    </form>
+    {% if edit_product %}
+      <h2>Edit product</h2>
+      <form action="{{ url_for('update', product_id=edit_product.id) }}" method="post">
+        <div class="row">
+          <input type="text" name="name" placeholder="Product name" value="{{ edit_product.name }}">
+          <input type="text" name="category" placeholder="Category" value="{{ edit_product.category }}">
+          <input type="text" name="price" placeholder="Price" value="{{ '%.2f'|format(edit_product.price) }}">
+          <button type="submit">Update</button>
+          <a href="/">Cancel</a>
+        </div>
+      </form>
+    {% else %}
+      <form action="{{ url_for('add') }}" method="post">
+        <div class="row">
+          <input type="text" name="name" placeholder="Product name">
+          <input type="text" name="category" placeholder="Category">
+          <input type="text" name="price" placeholder="Price">
+          <button type="submit">Add</button>
+        </div>
+      </form>
+    {% endif %}
 
     <div class="meta">
       <strong>Total:</strong> {{ total }}
@@ -62,9 +96,12 @@
             <td>{{ p.category }}</td>
             <td>{{ '%.2f'|format(p.price) }}</td>
             <td>
-              <form action="{{ url_for('delete', product_id=p.id) }}" method="post" style="display:inline">
-                <button type="submit" onclick="return confirm('Delete this product?')">Delete</button>
-              </form>
+              <div class="actions">
+                <a class="action-link" href="{{ url_for('edit', product_id=p.id) }}">Edit</a>
+                <form action="{{ url_for('delete', product_id=p.id) }}" method="post">
+                  <button class="action-button" type="submit" onclick="return confirm('Delete this product?')">Delete</button>
+                </form>
+              </div>
             </td>
           </tr>
         {% else %}
